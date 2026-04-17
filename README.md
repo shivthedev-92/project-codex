@@ -2,6 +2,8 @@
 
 A retro fantasy command-line interface for coding workflows.
 
+![Inspirational image](./inspirational_image.png)
+
 This project explores a more accessible, concept-oriented CLI inspired by an
 8-bit knight-and-codex aesthetic. The user is the knight, the CLI is the codex,
 and common development tasks are exposed as memorable commands like `goblin`,

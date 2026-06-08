@@ -7,20 +7,35 @@
 
 """Terminal presentation helpers."""
 
+from time import sleep
+
 from rich.console import Console
+from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from codex_cli.theme import COMMAND_DESCRIPTIONS, PALETTE, SUBTITLE, TITLE
+from spellbook.art import INTRO_FRAMES, SPELLBOOK_LOGO
+from spellbook.theme import COMMAND_DESCRIPTIONS, PALETTE, SUBTITLE
 
 console = Console()
 
 
+def render_intro_animation(cycles: int = 2, delay: float = 0.12) -> None:
+    if not console.is_terminal:
+        return
+
+    with Live(console=console, refresh_per_second=12, transient=True) as live:
+        for _ in range(cycles):
+            for frame in INTRO_FRAMES:
+                live.update(Panel(frame, border_style=PALETTE["panel"], expand=False))
+                sleep(delay)
+
+
 def render_banner() -> Panel:
-    title = Text(TITLE, style=PALETTE["accent"], justify="center")
+    title = Text(SPELLBOOK_LOGO, style=PALETTE["accent"], justify="center")
     subtitle = Text(SUBTITLE, style=PALETTE["gold"], justify="center")
-    body = Text.assemble(title, "\n", subtitle, "\n", ("STATUS: READY", PALETTE["success"]))
+    body = Text.assemble(title, "\n\n", subtitle, "\n", ("✨ STATUS: READY", PALETTE["success"]))
     return Panel(body, border_style=PALETTE["panel"], expand=False)
 
 
@@ -29,14 +44,15 @@ def render_help_table() -> Table:
     table.add_column("Command", style=PALETTE["accent"])
     table.add_column("Plain Alias", style=PALETTE["gold"])
     table.add_column("Meaning", style=PALETTE["label"])
-    table.add_row("/codex-open", "help", COMMAND_DESCRIPTIONS["help"])
-    table.add_row("/goblin", "fix", COMMAND_DESCRIPTIONS["goblin"])
-    table.add_row("/alchemy", "test", COMMAND_DESCRIPTIONS["alchemy"])
-    table.add_row("/coins", "usage", COMMAND_DESCRIPTIONS["coins"])
-    table.add_row("/dragons", "doctor", COMMAND_DESCRIPTIONS["dragons"])
-    table.add_row("/scroll", "explain", COMMAND_DESCRIPTIONS["scroll"])
-    table.add_row("/map", "repo", COMMAND_DESCRIPTIONS["map"])
-    table.add_row("/quest", "forge", COMMAND_DESCRIPTIONS["quest"])
+    table.add_row("📖 spellbook", "help", COMMAND_DESCRIPTIONS["help"])
+    table.add_row("👋 /exit", "quit, bye", COMMAND_DESCRIPTIONS["exit"])
+    table.add_row("👹 /goblin", "fix", COMMAND_DESCRIPTIONS["goblin"])
+    table.add_row("🧪 /alchemy", "test", COMMAND_DESCRIPTIONS["alchemy"])
+    table.add_row("🪙 /coins", "usage", COMMAND_DESCRIPTIONS["coins"])
+    table.add_row("🐉 /dragons", "doctor", COMMAND_DESCRIPTIONS["dragons"])
+    table.add_row("📜 /scroll", "explain", COMMAND_DESCRIPTIONS["scroll"])
+    table.add_row("📍 /map", "repo", COMMAND_DESCRIPTIONS["map"])
+    table.add_row("🧭 /quest", "forge", COMMAND_DESCRIPTIONS["quest"])
     return table
 
 

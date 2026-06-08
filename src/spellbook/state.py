@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-STATE_DIR = Path.home() / ".codex_cli"
+STATE_DIR = Path.home() / ".spellbook"
 SESSION_FILE = STATE_DIR / "session.json"
 
 

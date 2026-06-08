@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "codex-cli"
+name = "spellbook"
 version = "0.1.0"
-description = "A retro fantasy CLI interface for coding workflows"
+description = "A retro fantasy spellbook interface for coding workflows"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -19,7 +19,7 @@ dev = [
 ]
 
 [project.scripts]
-codex-open = "codex_cli.main:run"
+spellbook = "spellbook.main:run"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

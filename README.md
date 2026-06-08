@@ -1,13 +1,10 @@
-# Codex CLI
+# Spellbook
 
-A retro fantasy command-line interface for coding workflows.
+A retro fantasy command-line spellbook for coding workflows.
 
-![Inspirational image](./inspirational_image.png)
-
-This project explores a more accessible, concept-oriented CLI inspired by an
-8-bit knight-and-codex aesthetic. The user is the knight, the CLI is the codex,
-and common development tasks are exposed as memorable commands like `goblin`,
-`alchemy`, and `coins`.
+This project explores a more accessible, concept-oriented tool inspired by an
+arcane spellbook aesthetic. Common development tasks are exposed as memorable
+commands like `goblin`, `alchemy`, and `coins`.
 
 ## Vision
 
@@ -18,7 +15,7 @@ and common development tasks are exposed as memorable commands like `goblin`,
 
 ## Planned Commands
 
-- `/codex-open` or `help`: show command help
+- `spellbook` or `help`: show command help
 - `/goblin` or `fix`: investigate a bug
 - `/alchemy` or `test`: verify or test a fix
 - `/coins` or `usage`: show usage information
@@ -33,23 +30,23 @@ and common development tasks are exposed as memorable commands like `goblin`,
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
-codex-open
-codex-open /goblin "login breaks on mobile"
-codex-open /alchemy
+spellbook
+spellbook /goblin "login breaks on mobile"
+spellbook /alchemy
 ```
 
 You can also use plain aliases:
 
 ```bash
-codex-open help
-codex-open fix "broken login flow"
-codex-open test
+spellbook help
+spellbook fix "broken login flow"
+spellbook test
 ```
 
 ## Project Layout
 
 ```text
-src/codex_cli/
+src/spellbook/
   main.py
   console.py
   theme.py
@@ -66,3 +63,25 @@ This scaffold is intentionally thin. It focuses on:
 - visual tone
 - session/config foundations
 - future compatibility with a backend agent or API layer
+
+## Contributing
+
+Spellbook is early and intentionally approachable. Good first contributions are:
+
+- Make existing commands functional, starting with `/alchemy`, `/map`, and `/scroll`
+- Add tests for command aliases and terminal rendering helpers
+- Improve terminal layout across different terminal widths
+- Add new themed commands, such as `🏰 /castle` for model/provider information
+- Keep the fantasy theme playful without making command behavior unclear
+
+To work locally:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+pytest
+spellbook
+```
+
+Please keep changes small, tested, and easy to understand.

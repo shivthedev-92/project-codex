@@ -5,10 +5,10 @@
 #    ██║   ██║  ██║███████╗    ╚██████╗╚██████╔╝██████╔╝███████╗██╔╝ ██╗
 #    ╚═╝   ╚═╝  ╚═╝╚══════╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-"""Theme constants for the Codex CLI."""
+"""Theme constants for Spellbook."""
 
-TITLE = "CODEX CLI"
-SUBTITLE = "Knight Interface"
+TITLE = "SPELLBOOK"
+SUBTITLE = "Arcane Command Interface"
 
 PALETTE = {
     "accent": "bold bright_cyan",
@@ -21,8 +21,11 @@ PALETTE = {
 }
 
 ALIASES = {
-    "codex-open": "help",
+    "spellbook": "help",
     "help": "help",
+    "exit": "exit",
+    "quit": "exit",
+    "bye": "exit",
     "goblin": "goblin",
     "fix": "goblin",
     "alchemy": "alchemy",
@@ -40,7 +43,8 @@ ALIASES = {
 }
 
 COMMAND_DESCRIPTIONS = {
-    "help": "Open the codex and show commands.",
+    "help": "Open the spellbook and show commands.",
+    "exit": "Close the spellbook cleanly.",
     "goblin": "Track down a bug or broken flow.",
     "alchemy": "Verify a fix with tests or checks.",
     "coins": "Show token and usage information.",

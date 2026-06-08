@@ -6,6 +6,8 @@ This project explores a more accessible, concept-oriented tool inspired by an
 arcane spellbook aesthetic. Common development tasks are exposed as memorable
 commands like `goblin`, `alchemy`, and `coins`.
 
+![Spellbook terminal screenshot](./docs/spellbook-screenshot.svg)
+
 ## Vision
 
 - Intuitive, human-first commands

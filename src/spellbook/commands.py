@@ -13,9 +13,19 @@ from __future__ import annotations
 from pathlib import Path
 
 import typer
+from rich.markdown import Markdown
 from rich.pretty import Pretty
 
-from spellbook.console import console, render_banner, render_help_table, render_intro_animation, status_panel
+from spellbook.agent import AgentError, run_agent
+from spellbook.auth import CodexCLIError, login, login_status, logout
+from spellbook.console import (
+    console,
+    magic_wand,
+    render_banner,
+    render_help_table,
+    render_intro_animation,
+    status_panel,
+)
 from spellbook.state import load_session, save_session
 from spellbook.theme import PALETTE
 
@@ -30,6 +40,34 @@ def help_command() -> None:
 def exit_command() -> None:
     console.print(status_panel("👋 EXIT", "Closing the spellbook.", PALETTE["success"]))
     raise typer.Exit(0)
+
+
+def settings_command(
+    action: str = typer.Argument("status", help="Codex account action: status, login, or logout."),
+) -> None:
+    """Manage the Codex account used by Spellbook."""
+    action = action.lower()
+    try:
+        if action == "status":
+            console.print(status_panel("⚙️ SETTINGS", login_status(), PALETTE["accent"]))
+            console.print("Sign in with ChatGPT using: spellbook /settings login")
+            return
+        if action == "login":
+            console.print(status_panel("🔐 CODEX LOGIN", "Opening the ChatGPT sign-in flow.", PALETTE["gold"]))
+            login()
+            console.print(status_panel("✨ CONNECTED", login_status(), PALETTE["success"]))
+            return
+        if action == "logout":
+            logout()
+            console.print(status_panel("🔒 SIGNED OUT", "Codex credentials were removed.", PALETTE["muted"]))
+            return
+    except CodexCLIError as error:
+        console.print(status_panel("⚠️ CODEX", str(error), PALETTE["danger"]))
+        raise typer.Exit(1) from error
+
+    console.print(status_panel("⚠️ SETTINGS", f"Unknown action: {action}", PALETTE["danger"]))
+    console.print("Choose one of: status, login, logout")
+    raise typer.Exit(2)
 
 
 def goblin_command(problem: str = typer.Argument(..., help="Describe the bug to investigate.")) -> None:
@@ -79,4 +117,11 @@ def map_command() -> None:
 def quest_command(task: str = typer.Argument(..., help="Describe the implementation task.")) -> None:
     save_session({"last_command": "quest", "task": task})
     console.print(status_panel("🧭 QUEST", task, PALETTE["success"]))
-    console.print("Future hook: send this task to your backend runner or agent interface.")
+    try:
+        with magic_wand("Casting your quest"):
+            answer = run_agent(task)
+    except AgentError as error:
+        console.print(status_panel("⚠️ QUEST FAILED", str(error), PALETTE["danger"]))
+        raise typer.Exit(1) from error
+
+    console.print(Markdown(answer))

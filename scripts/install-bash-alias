@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+LAUNCHER="$SCRIPT_DIR/spellbook"
+BASHRC="${HOME}/.bashrc"
+ALIAS_LINE="alias spellbook=$(printf '%q' "$LAUNCHER")"
+
+if [[ ! -x "$LAUNCHER" ]]; then
+    printf 'Launcher is not executable: %s\n' "$LAUNCHER" >&2
+    exit 1
+fi
+
+touch "$BASHRC"
+
+if grep -Fqx "$ALIAS_LINE" "$BASHRC"; then
+    printf 'The spellbook alias is already installed.\n'
+else
+    printf '\n# Spellbook CLI\n%s\n' "$ALIAS_LINE" >> "$BASHRC"
+    printf 'Installed the spellbook alias in %s.\n' "$BASHRC"
+fi
+
+printf 'Run: source %q\n' "$BASHRC"

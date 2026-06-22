@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+SPELLBOOK_BIN="$PROJECT_ROOT/.venv/bin/spellbook"
+
+if [[ ! -x "$SPELLBOOK_BIN" ]]; then
+    printf 'Spellbook is not installed in %s/.venv.\n' "$PROJECT_ROOT" >&2
+    printf 'Run: python3 -m venv .venv && .venv/bin/pip install -e .\n' >&2
+    exit 1
+fi
+
+exec "$SPELLBOOK_BIN" "$@"

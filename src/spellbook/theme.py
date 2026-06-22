@@ -40,6 +40,8 @@ ALIASES = {
     "repo": "map",
     "quest": "quest",
     "forge": "quest",
+    "settings": "settings",
+    "config": "settings",
 }
 
 COMMAND_DESCRIPTIONS = {
@@ -52,4 +54,5 @@ COMMAND_DESCRIPTIONS = {
     "scroll": "Explain a file, function, or code path.",
     "map": "Show project structure and likely hotspots.",
     "quest": "Start a new implementation task.",
+    "settings": "Connect or manage your Codex account.",
 }

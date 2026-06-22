@@ -37,6 +37,55 @@ spellbook /goblin "login breaks on mobile"
 spellbook /alchemy
 ```
 
+Connect Spellbook to your ChatGPT account through Codex's browser login:
+
+```bash
+spellbook /settings status
+spellbook /settings login
+spellbook /settings logout
+```
+
+The login command opens the official ChatGPT sign-in page. Codex handles the
+localhost callback and credential storage; Spellbook does not read or store
+your access token.
+
+## Bash Alias
+
+Install a permanent `spellbook` alias without activating the virtual
+environment for every terminal session:
+
+```bash
+cd /home/shivthedev/Documents/projects/project-codex
+./scripts/install-bash-alias
+source ~/.bashrc
+```
+
+You can then run Spellbook from any directory:
+
+```bash
+spellbook
+spellbook /settings status
+spellbook /scroll src/spellbook/main.py
+spellbook /quest "describe the implementation task"
+```
+
+`/quest` runs the task through the authenticated Codex CLI in the current
+directory. Codex receives workspace-write access so implementation quests can
+edit project files; review the requested task before casting it.
+
+Running `spellbook` without a command opens an interactive session. Enter
+commands at the prompt and use `/exit` (or Ctrl+D) to close it:
+
+```text
+spellbook> /settings status
+spellbook> /scroll README.md
+spellbook> /exit
+```
+
+The alias points to `scripts/spellbook`, which executes the project's
+`.venv/bin/spellbook` directly. Moving the repository requires reinstalling the
+alias from its new location.
+
 You can also use plain aliases:
 
 ```bash
@@ -65,6 +114,18 @@ This scaffold is intentionally thin. It focuses on:
 - visual tone
 - session/config foundations
 - future compatibility with a backend agent or API layer
+
+Long-running model calls should use the terminal-safe processing animation:
+
+```python
+from spellbook.console import magic_wand
+
+with magic_wand("Reading the scroll"):
+    response = model_runner.run(prompt)
+```
+
+The wand and sparkles animate in an interactive terminal. Redirected output,
+CI, and terminals without color receive a single stable status line.
 
 ## Contributing
 

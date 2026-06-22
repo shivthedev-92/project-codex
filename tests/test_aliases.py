@@ -18,3 +18,5 @@ def test_slash_command_aliases_map_to_core_commands() -> None:
     assert ALIASES["alchemy"] == "alchemy"
     assert ALIASES["test"] == "alchemy"
     assert ALIASES["coins"] == "coins"
+    assert ALIASES["settings"] == "settings"
+    assert ALIASES["config"] == "settings"

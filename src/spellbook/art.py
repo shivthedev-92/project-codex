@@ -44,3 +44,17 @@ INTRO_FRAMES = [
  [🔮 MODE] Awaiting command_
 """.strip("\n"),
 ]
+
+# Each frame has the same visual structure so Rich can redraw it in place
+# without leaving fragments behind. Emoji glyph widths are normalized by Rich
+# for the active terminal.
+MAGIC_WAND_FRAMES = (
+    "🪄  ·      ",
+    " 🪄 ✦     ",
+    "  🪄 ✨    ",
+    "   🪄 ✦   ",
+    "    🪄  · ",
+    "   ✨ 🪄  ",
+    " ✦  🪄 ✨ ",
+    "✨ 🪄  ✦  ",
+)

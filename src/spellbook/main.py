@@ -9,9 +9,11 @@
 
 from __future__ import annotations
 
+import shlex
 import sys
 
 import typer
+from typer._click.exceptions import ClickException
 
 from spellbook.commands import (
     alchemy_command,
@@ -23,7 +25,9 @@ from spellbook.commands import (
     map_command,
     quest_command,
     scroll_command,
+    settings_command,
 )
+from spellbook.console import console
 from spellbook.theme import ALIASES
 
 app = typer.Typer(
@@ -42,21 +46,62 @@ app.command("dragons")(dragons_command)
 app.command("scroll")(scroll_command)
 app.command("map")(map_command)
 app.command("quest")(quest_command)
+app.command("settings")(settings_command)
 
 
-def normalize_argv() -> None:
-    if len(sys.argv) < 2:
-        sys.argv.append("help")
-        return
-    raw = sys.argv[1].lstrip("/")
+def normalize_command(arguments: list[str]) -> list[str]:
+    """Normalize fantasy commands and plain aliases for Typer."""
+    if not arguments:
+        return arguments
+    raw = arguments[0].lstrip("/")
     command = ALIASES.get(raw)
     if not command:
-        return
-    sys.argv[1] = command
+        return arguments
+    return [command, *arguments[1:]]
+
+
+def interactive_loop() -> None:
+    """Keep Spellbook open and dispatch commands until the user exits."""
+    help_command()
+
+    while True:
+        try:
+            line = console.input("\n[bold bright_cyan]spellbook>[/] ").strip()
+        except (EOFError, KeyboardInterrupt):
+            console.print()
+            try:
+                exit_command()
+            except typer.Exit:
+                return
+
+        if not line:
+            continue
+
+        try:
+            arguments = normalize_command(shlex.split(line))
+        except ValueError as error:
+            console.print(f"[bold red]Invalid command:[/] {error}")
+            continue
+
+        if arguments[0] == "exit":
+            try:
+                exit_command()
+            except typer.Exit:
+                return
+
+        try:
+            app(args=arguments, prog_name="spellbook", standalone_mode=False)
+        except typer.Exit:
+            return
+        except ClickException as error:
+            console.print(f"[bold red]{error.format_message()}[/]")
 
 
 def run() -> None:
-    normalize_argv()
+    if len(sys.argv) == 1:
+        interactive_loop()
+        return
+    sys.argv[1:] = normalize_command(sys.argv[1:])
     app()
 
 

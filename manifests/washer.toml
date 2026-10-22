@@ -1,0 +1,275 @@
+# A front-load washing machine, described as code.
+#
+# Error codes follow the common front-loader convention (IE, OE, UE, HE, tE,
+# dE). Real manufacturers vary, so copy this file and adjust it per model.
+
+schema = "spellbook.manifest/0.1"
+
+[device]
+id = "washer"
+name = "Front-load washing machine (simulated)"
+kind = "appliance.washing_machine"
+vendor = "Spellbook Sim"
+model = "SIM-WM-7KG"
+
+[transport]
+kind = "sim"
+target = "washing_machine"
+
+# --- Sensors -----------------------------------------------------------------
+# power_w is what an energy-monitoring smart plug (Tasmota/ESPHome) reports.
+# vibration_g is what an accelerometer on an ESP32 taped to the cabinet reports.
+
+[[sensors]]
+id = "power_w"
+unit = "W"
+description = "Mains power draw at the plug"
+min = 0.0
+max = 2400.0
+
+[[sensors]]
+id = "water_temp_c"
+unit = "°C"
+description = "Drum water temperature from the machine's thermistor"
+min = 5.0
+max = 95.0
+
+[[sensors]]
+id = "vibration_g"
+unit = "g"
+description = "Peak cabinet vibration"
+min = 0.0
+max = 3.0
+
+[[sensors]]
+id = "water_level_pct"
+unit = "%"
+description = "Drum water level"
+min = 0.0
+max = 100.0
+
+# --- Commands ----------------------------------------------------------------
+
+[[commands]]
+id = "start_cycle"
+description = "Run a full wash cycle and record its telemetry"
+hazard = "danger"
+reasons = ["mains voltage", "heating element", "moving drum", "water"]
+
+[[commands.params]]
+name = "program"
+description = "Wash program"
+default = "cotton40"
+choices = ["cotton40", "cold"]
+
+[[commands]]
+id = "test_component"
+description = "Service mode: run one component for 60 s and measure it"
+hazard = "danger"
+reasons = ["mains voltage", "heating element", "moving drum"]
+
+[[commands.params]]
+name = "component"
+description = "Component to exercise"
+choices = ["valve", "heater", "motor", "pump"]
+
+[[commands]]
+id = "unlock_door"
+description = "Release the door lock"
+hazard = "caution"
+reasons = ["drum may still hold hot water"]
+
+[[commands]]
+id = "stop"
+description = "Stop the current cycle"
+hazard = "safe"
+
+# --- Expected behaviour per phase --------------------------------------------
+# The diagnosis engine compares recorded telemetry against these.
+
+[[phases]]
+id = "fill"
+nominal_s = 120
+timeout_s = 300
+expect = [
+  { sensor = "power_w", mean_min = 5.0, mean_max = 60.0 },
+  { sensor = "water_level_pct", rise_min = 40.0 },
+]
+
+[[phases]]
+id = "heat"
+nominal_s = 900
+timeout_s = 1800
+expect = [
+  { sensor = "power_w", mean_min = 1500.0, mean_max = 2300.0 },
+  { sensor = "water_temp_c", rise_min = 15.0 },
+]
+
+[[phases]]
+id = "wash"
+nominal_s = 1200
+timeout_s = 1500
+expect = [
+  { sensor = "power_w", mean_min = 120.0, mean_max = 450.0 },
+  { sensor = "vibration_g", peak_max = 0.5 },
+]
+
+[[phases]]
+id = "drain"
+nominal_s = 120
+timeout_s = 300
+expect = [
+  { sensor = "power_w", mean_min = 20.0, mean_max = 80.0 },
+]
+
+[[phases]]
+id = "spin"
+nominal_s = 600
+timeout_s = 900
+expect = [
+  { sensor = "power_w", mean_min = 250.0, mean_max = 600.0 },
+  { sensor = "vibration_g", peak_max = 0.9 },
+]
+
+# --- Error codes -------------------------------------------------------------
+
+[[error_codes]]
+code = "IE"
+meaning = "Water inlet error: the drum did not fill in time"
+causes = ["Tap closed or low water pressure", "Clogged inlet filter screen", "Failed inlet valve"]
+faults = ["inlet_valve_failed"]
+
+[[error_codes]]
+code = "OE"
+meaning = "Drain error: water did not drain in time"
+causes = ["Clogged drain filter", "Kinked drain hose", "Failed drain pump"]
+faults = ["drain_filter_clogged", "drain_pump_failed"]
+
+[[error_codes]]
+code = "UE"
+meaning = "Unbalanced load: spin was aborted"
+causes = ["Single heavy item or bunched load", "Machine not level"]
+faults = ["unbalanced_load"]
+
+[[error_codes]]
+code = "HE"
+meaning = "Heating error: water did not reach temperature"
+causes = ["Open heating element", "Failed heater relay", "Blown thermal fuse"]
+faults = ["heater_dead"]
+
+[[error_codes]]
+code = "tE"
+meaning = "Thermistor error: temperature reading is implausible"
+causes = ["Failed thermistor", "Loose thermistor connector"]
+faults = ["thermistor_failed"]
+
+[[error_codes]]
+code = "dE"
+meaning = "Door error: the door lock did not engage"
+causes = ["Door not fully closed", "Failed door lock assembly"]
+faults = ["door_lock_failed"]
+
+# --- Known faults and how to repair them -------------------------------------
+
+[[faults]]
+id = "door_lock_failed"
+name = "Door lock assembly not engaging"
+symptoms = ["code:dE"]
+parts = ["Door lock assembly"]
+hazard = "danger"
+repair = [
+  "Unplug the machine from mains.",
+  "Close the door firmly and check the latch hook is not bent.",
+  "Remove the door gasket clamp and unscrew the lock assembly.",
+  "Check the lock solenoid for continuity with a multimeter; replace the assembly if open.",
+]
+
+[[faults]]
+id = "inlet_valve_failed"
+name = "Inlet valve not opening"
+symptoms = ["no_rise:water_level_pct@fill", "timeout:fill", "code:IE"]
+parts = ["Inlet valve", "Inlet filter screen"]
+hazard = "caution"
+repair = [
+  "Confirm the tap is open and the hose is not kinked.",
+  "Turn off the tap, remove the inlet hose and clean the filter screen.",
+  "Unplug the machine, then measure the valve coil: roughly 1–5 kΩ is healthy.",
+  "Replace the valve if the coil is open or the screen was clean.",
+]
+
+[[faults]]
+id = "heater_dead"
+name = "Heating element open circuit"
+symptoms = ["low:power_w@heat", "no_rise:water_temp_c@heat", "timeout:heat", "code:HE"]
+parts = ["Heating element", "Heater relay"]
+hazard = "danger"
+repair = [
+  "Unplug the machine from mains and wait 5 minutes.",
+  "Remove the rear panel and locate the heating element below the drum.",
+  "Disconnect the element and measure across its terminals: roughly 20–30 Ω is healthy.",
+  "If the reading is open (OL), replace the element. If it is healthy, check the heater relay on the control board.",
+]
+
+[[faults]]
+id = "thermistor_failed"
+name = "Thermistor stuck or open"
+symptoms = ["no_rise:water_temp_c@heat", "timeout:heat", "code:tE"]
+parts = ["Thermistor (NTC)"]
+hazard = "danger"
+repair = [
+  "Unplug the machine from mains.",
+  "Locate the thermistor on the heating element and unplug its connector.",
+  "Measure it at room temperature: about 5–20 kΩ is typical, and it should drop as it warms.",
+  "Replace it if the reading is open, shorted, or does not change with heat.",
+]
+
+[[faults]]
+id = "bearing_worn"
+name = "Drum bearings worn"
+symptoms = ["peak:vibration_g@wash", "peak:vibration_g@spin"]
+parts = ["Drum bearing kit", "Drum seal"]
+hazard = "danger"
+repair = [
+  "Unplug the machine and spin the empty drum by hand; listen for rumbling or grinding.",
+  "Check for brown streaks behind the drum, a sign of a leaking seal.",
+  "Bearing replacement means splitting the tub. This is a two-person, half-day job.",
+  "Replace bearings and seal together; one without the other fails again quickly.",
+]
+
+[[faults]]
+id = "drain_pump_failed"
+name = "Drain pump not running"
+symptoms = ["low:power_w@drain", "timeout:drain", "code:OE"]
+parts = ["Drain pump"]
+hazard = "danger"
+repair = [
+  "Unplug the machine and drain the remaining water through the emergency hose.",
+  "Open the filter cap and check that the impeller turns freely.",
+  "Measure the pump coil: roughly 150–200 Ω is healthy.",
+  "Replace the pump if the coil is open or the impeller is seized.",
+]
+
+[[faults]]
+id = "drain_filter_clogged"
+name = "Drain filter or hose clogged"
+symptoms = ["timeout:drain", "code:OE"]
+parts = ["Drain filter"]
+hazard = "caution"
+repair = [
+  "Unplug the machine and put a tray under the filter cap; water will come out.",
+  "Unscrew the filter and clear lint, coins, and hair clips.",
+  "Check the drain hose for kinks and that it is not pushed too far into the standpipe.",
+  "Run a drain-only program to confirm.",
+]
+
+[[faults]]
+id = "unbalanced_load"
+name = "Load unbalanced"
+symptoms = ["peak:vibration_g@spin", "code:UE"]
+parts = []
+hazard = "safe"
+repair = [
+  "Redistribute the load, or add similar items so the weight evens out.",
+  "Check the machine is level and all four feet touch the floor.",
+  "If it happens with every load, inspect the shock absorbers.",
+]

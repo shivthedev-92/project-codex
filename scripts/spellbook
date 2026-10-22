@@ -4,11 +4,16 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-SPELLBOOK_BIN="$PROJECT_ROOT/.venv/bin/spellbook"
+SPELLBOOK_BIN="$PROJECT_ROOT/target/release/spellbook"
+
+# cargo rebuilds only when sources changed, so the alias always runs fresh code.
+if command -v cargo >/dev/null 2>&1; then
+    cargo build --release --quiet --manifest-path "$PROJECT_ROOT/Cargo.toml"
+fi
 
 if [[ ! -x "$SPELLBOOK_BIN" ]]; then
-    printf 'Spellbook is not installed in %s/.venv.\n' "$PROJECT_ROOT" >&2
-    printf 'Run: python3 -m venv .venv && .venv/bin/pip install -e .\n' >&2
+    printf 'Spellbook is not built in %s.\n' "$PROJECT_ROOT" >&2
+    printf 'Install Rust from https://rustup.rs, then run: cargo build --release\n' >&2
     exit 1
 fi
 
